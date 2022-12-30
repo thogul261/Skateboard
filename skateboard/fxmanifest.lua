@@ -3,7 +3,7 @@ game 'gta5'
 
 author 'Red | Sceetzy'
 description 'Realistic Skateboarding'
-version '1.0.0''
+version '1.0.0'
 
 shared_scripts {
     'config.lua',
