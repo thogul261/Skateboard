@@ -1,3 +1,4 @@
+local QBCore = exports['qb-core']:GetCoreObject()
 local RCCar = {}
 local player = nil
 
@@ -18,44 +19,43 @@ AddEventHandler('longboard:start', function()
 end)
 
 RCCar.Start = function()
-	player = GetPlayerPed(-1)
-	if DoesEntityExist(RCCar.Entity) then return end
+    player = GetPlayerPed(-1)
+    if DoesEntityExist(RCCar.Entity) then return end
 
-	RCCar.Spawn()
+    RCCar.Spawn()
+    QBCore.Functions.Notify('[E] Pick-Up, [G] Drive', 'primary', 3500)
+    while DoesEntityExist(RCCar.Entity) and DoesEntityExist(RCCar.Driver) do
+        Citizen.Wait(5)
 
-	while DoesEntityExist(RCCar.Entity) and DoesEntityExist(RCCar.Driver) do
-		Citizen.Wait(5)
+        local distanceCheck = GetDistanceBetweenCoords(GetEntityCoords(PlayerPedId()),  GetEntityCoords(RCCar.Entity), true)
+        RCCar.HandleKeys(distanceCheck)
 
-		local distanceCheck = GetDistanceBetweenCoords(GetEntityCoords(PlayerPedId()),  GetEntityCoords(RCCar.Entity), true)
+        if distanceCheck <= Config.LoseConnectionDistance then
+            if not NetworkHasControlOfEntity(RCCar.Driver) then
+                NetworkRequestControlOfEntity(RCCar.Driver)
+            elseif not NetworkHasControlOfEntity(RCCar.Entity) then
+                NetworkRequestControlOfEntity(RCCar.Entity)
+            end
+        else
+            TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 6, 2500)
+        end
 
-		RCCar.HandleKeys(distanceCheck)
-
-		if distanceCheck <= Config.LoseConnectionDistance then
-			if not NetworkHasControlOfEntity(RCCar.Driver) then
-				NetworkRequestControlOfEntity(RCCar.Driver)
-			elseif not NetworkHasControlOfEntity(RCCar.Entity) then
-				NetworkRequestControlOfEntity(RCCar.Entity)
-			end
-		else
-			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 6, 2500)
-		end
-
-		Citizen.CreateThread(function()
-			Citizen.Wait(50)
-			StopCurrentPlayingAmbientSpeech(RCCar.Driver)	
-			if Attached then
-				TriggerServerEvent('skateboard:get')
-				-- Ragdoll system
-				local x = GetEntityRotation(RCCar.Entity).x
-				local y = GetEntityRotation(RCCar.Entity).y
-				
-				if (-40.0 < x and x > 40.0) or (-40.0 < y and y > 40.0) then
-					RCCar.AttachPlayer(false)
-					SetPedToRagdoll(player, 5000, 4000, 0, true, true, false)
-				end	
-			end           
-		end)
-	end
+        Citizen.CreateThread(function()
+            Citizen.Wait(50)
+            StopCurrentPlayingAmbientSpeech(RCCar.Driver)    
+            if Attached then
+                TriggerServerEvent('skateboard:get')
+                -- Ragdoll system
+                local x = GetEntityRotation(RCCar.Entity).x
+                local y = GetEntityRotation(RCCar.Entity).y
+                
+                if (-40.0 < x and x > 40.0) or (-40.0 < y and y > 40.0) then
+                    RCCar.AttachPlayer(false)
+                    SetPedToRagdoll(player, 5000, 4000, 0, true, true, false)
+                end    
+            end           
+        end)
+    end
 end
 
 RCCar.HandleKeys = function(distanceCheck)
