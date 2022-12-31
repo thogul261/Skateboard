@@ -5,6 +5,8 @@ This is a simple skateboard script that was pulled from https://github.com/Dimit
 
 Add the image into your qb-inventory images folder.
 
+Updated: qb notify to Tell how to Pickup and get on
+
 How to install:
 
 Place the folder 'skateboard’in your resources folder
